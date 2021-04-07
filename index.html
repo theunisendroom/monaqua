@@ -9,12 +9,46 @@
 </head>
 <body>
     <main role="main" class="main-content" id="main-content">
+        <h1>Current Information</h1>
+        <hr>
         <div class="titleCont">
-            <h1 class="main-title" id="currentTemperature">
-                20°C
+            <h1 class="main-title" id="waterTemperature">
+                0.0°C
             </h1>
         </div>
-        <div id="chartDiv" style="width:80%; height:50%; margin:0 auto;"></div>
+
+        <div class="titleCont">
+            <h1 class="main-title" id="airTemperature">
+                0.0°C
+            </h1>
+        </div>
+
+        <div class="titleCont">
+            <h1 class="main-title" id="humidity">
+                0.0%
+            </h1>
+        </div>
+
+        <div class="titleCont">
+            <h1 class="main-title" id="heatIndex">
+                0.0°C
+            </h1>
+        </div>
+
+        <div class="titleCont">
+            <h1 class="main-title" id="lightIntensity">
+                0.0
+            </h1>
+        </div>
+        <hr>
+
+        <h1>Graphs for last 7 days</h1>
+        <div id="waterTemperatureChartDiv" style="width:80%; height:50%; margin:0 auto;"></div>
+        <div id="airTemperatureChartDiv" style="width:80%; height:50%; margin:0 auto;"></div>
+        <div id="humidityChartDiv" style="width:80%; height:50%; margin:0 auto;"></div>
+        <div id="heatIndexChartDiv" style="width:80%; height:50%; margin:0 auto;"></div>
+        <div id="lightIntensityChartDiv" style="width:80%; height:20%; margin:0 auto;"></div>
+        
     </main>
     
 </body>

@@ -1,5 +1,5 @@
 .main-content {
-    overflow:hidden;
+    overflow:scroll;
       position: relative;
       
       display: flex;
@@ -7,19 +7,17 @@
       justify-content: center;
       flex-flow: column;
       
-      height: 100vh;
       
-      background: linear-gradient(to right, rgba(36,31,31,1) 0%, rgba(36,31,31,1) 32%, rgba(74,71,70,1) 100%);
+      background:#295675 url('dreamcodes/bg_images/color/c4.jpg') no-repeat center top;
       color: #fff;
       text-align: center;
   }
   
   .main-title {
-      padding: .3em 1em .25em;    
       font-weight: 400;
-      font-size: 50px;
+      font-size: 20px;
       color: white;
       font-family: 'Bellefair', serif;
       position:relative;
-      line-height:1.3;
+      
   }

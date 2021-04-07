@@ -5,18 +5,27 @@ var path = require('path');
 var bodyParser = require('body-parser')
 var io = require('socket.io')(http);
 var mongoose = require("mongoose");
+const mdq = require('mongo-date-query');
 
 mongoose.Promise = global.Promise;
 mongoose.connect("mongodb://localhost:27017/monaqua");
 
 var monaquaSchema = new mongoose.Schema({
-    date: String,
-    temperature: String
+    date: Date,
+    waterTemperature: Number,
+    airTemperature:  Number,
+    humidity: Number,
+    heatIndex: Number,
+    lightIntensity: Number
   });
 
-var TemperatureLog = mongoose.model("TemperatureLog", monaquaSchema);
+var DataLog = mongoose.model("DataLog", monaquaSchema);
 
-var currentTemp = '20.1';
+var waterTemperature = 0.0;
+var airTemperature = 0.0;
+var humidity = 0.0;
+var heatIndex = 0.0;
+var lightIntensity = 0.0;
 
 var jsonParser = bodyParser.json();
 
@@ -34,24 +43,41 @@ app.get('/mystyle.css', (req, res) => {
 });
 
 app.get('/current-temp', (req, res) => {
-    res.send(currentTemp);
+    res.send(waterTemperature);
 });
 
 app.post('/', jsonParser, (req, res) => {
     console.log(req.body.temperature);
-    currentTemp = req.body.temperature;
+    waterTemperature = req.body.temperature;
+    airTemperature = req.body.airTemperature;
+    humidity = req.body.humidity;
+    heatIndex = req.body.heatIndex;
+    lightIntensity = req.body.lightIntensity;
 
-    var tempLogRecord = new TemperatureLog({"date":new Date(Date.now()).toLocaleString("en-ZA"),"temperature":currentTemp});
+    var tempLogRecord = new DataLog({"date":new Date(Date.now()),"waterTemperature":waterTemperature,"airTemperature":airTemperature,"humidity":humidity,"heatIndex":heatIndex,"lightIntensity":lightIntensity});
     tempLogRecord.save()
         .then(item => {
 
-            var jsonData = [];
+            var waterTemps = [];
+            var airTemperatures = [];
+            var humidities = [];
+            var heatIndexes = [];
+            var lightIntensities = [];
 
-            TemperatureLog.find({}, function(err, temperatureLogs) {
-                temperatureLogs.forEach(function(temperatureLog) {
-                    jsonData.push({x: temperatureLog.date, y: parseFloat(temperatureLog.temperature)});
+            DataLog.find({"date": mdq.lastWeek()}, function(err, dataLogs) {    
+                dataLogs.forEach(function(dataLog) {
+                    console.log(dataLog);
+                    waterTemps.push({x: dataLog.date, y: dataLog.waterTemperature});
+                    airTemperatures.push({x: dataLog.date, y: dataLog.airTemperature});
+                    humidities.push({x: dataLog.date, y: dataLog.humidity});
+                    heatIndexes.push({x: dataLog.date, y: dataLog.heatIndex});
+                    lightIntensities.push({x: dataLog.date, y: dataLog.lightIntensity});
                 }); 
-                io.sockets.emit('temperature',{"currentTemp":currentTemp,"chartData":jsonData});
+                io.sockets.emit('waterTemperature',{"waterTemperature":waterTemperature,"chartData":waterTemps});
+                io.sockets.emit('airTemperature',{"airTemperature":airTemperature,"chartData":airTemperatures});
+                io.sockets.emit('humidity',{"humidity":humidity,"chartData":humidities});
+                io.sockets.emit('heatIndex',{"heatIndex":heatIndex,"chartData":heatIndexes});
+                io.sockets.emit('lightIntensity',{"lightIntensity":lightIntensity,"chartData":lightIntensities});
               });
            
             res.send("item saved to database");
@@ -66,14 +92,27 @@ io.sockets.on('connection', function(socket){
     
     console.log('connected');
 
-    var jsonData = [];
+    var waterTemps = [];
+    var airTemperatures = [];
+    var humidities = [];
+    var heatIndexes = [];
+    var lightIntensities = [];
 
-    TemperatureLog.find({}, function(err, temperatureLogs) {
-        temperatureLogs.forEach(function(temperatureLog) {
-            jsonData.push({x: temperatureLog.date, y: parseFloat(temperatureLog.temperature)});
+    DataLog.find({"date": mdq.lastWeek()}, function(err, dataLogs) {    
+        dataLogs.forEach(function(dataLog) {
+            console.log(dataLog);
+            waterTemps.push({x: dataLog.date, y: dataLog.waterTemperature});
+            airTemperatures.push({x: dataLog.date, y: dataLog.airTemperature});
+            humidities.push({x: dataLog.date, y: dataLog.humidity});
+            heatIndexes.push({x: dataLog.date, y: dataLog.heatIndex});
+            lightIntensities.push({x: dataLog.date, y: dataLog.lightIntensity});
         }); 
-        io.sockets.emit('temperature',{"currentTemp":currentTemp,"chartData":jsonData});
-    });
+        io.sockets.emit('waterTemperature',{"waterTemperature":waterTemperature,"chartData":waterTemps});
+        io.sockets.emit('airTemperature',{"airTemperature":airTemperature,"chartData":airTemperatures});
+        io.sockets.emit('humidity',{"humidity":humidity,"chartData":humidities});
+        io.sockets.emit('heatIndex',{"heatIndex":heatIndex,"chartData":heatIndexes});
+        io.sockets.emit('lightIntensity',{"lightIntensity":lightIntensity,"chartData":lightIntensities});
+      });
     
     socket.on('disconnect', function(){
         console.log('disconnected');
