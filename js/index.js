@@ -33,7 +33,7 @@ function renderHumidityChart(series) {
 		legend_visible: false,
 		xAxis_crosshair_enabled: true,
 		defaultSeries_firstPoint_label_text: '<b>%seriesName</b>',
-		defaultPoint_tooltip: '%seriesName <b>%yValue</b>°C',
+		defaultPoint_tooltip: '%seriesName <b>%yValue</b>%',
 		series: series
 	});
 }
@@ -59,7 +59,7 @@ function renderLightIntensityChart(series) {
 		legend_visible: false,
 		xAxis_crosshair_enabled: true,
 		defaultSeries_firstPoint_label_text: '<b>%seriesName</b>',
-		defaultPoint_tooltip: '%seriesName <b>%yValue</b>°C',
+		defaultPoint_tooltip: '%seriesName <b>%yValue</b>',
 		series: series
 	});
 }
@@ -73,20 +73,20 @@ socket.on("waterTemperature", function(data){
 socket.on("airTemperature", function(data){
 	console.log(data);
 	$('#airTemperature').html("Air Temperature: "+data.airTemperature+"°C");
-	renderAirTemperatureChart([{name: 'Air Temperature', points: data.chartData}]);
+	renderAirTemperatureChart([{name: 'Air Temperatures', points: data.chartData}]);
 })
 socket.on("humidity", function(data){
 	console.log(data);
 	$('#humidity').html("Humidity: "+data.humidity+"%");
-	renderHumidityChart([{name: 'Humidity', points: data.chartData}]);
+	renderHumidityChart([{name: 'Humidities', points: data.chartData}]);
 })
 socket.on("heatIndex", function(data){
 	console.log(data);
 	$('#heatIndex').html("Heat Index: "+data.heatIndex+"°C");
-	renderHeatIndexChart([{name: 'Heat Index', points: data.chartData}]);
+	renderHeatIndexChart([{name: 'Heat Indexes', points: data.chartData}]);
 })
 socket.on("lightIntensity", function(data){
 	console.log(data);
 	$('#lightIntensity').html("Light Intensity: "+data.lightIntensity);
-	renderLightIntensityChart([{name: 'Light Intensity', points: data.chartData}]);
+	renderLightIntensityChart([{name: 'Light Intensities', points: data.chartData}]);
 })

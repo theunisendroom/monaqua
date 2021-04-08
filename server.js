@@ -64,21 +64,55 @@ app.post('/', jsonParser, (req, res) => {
             var heatIndexes = [];
             var lightIntensities = [];
 
-            DataLog.find({"date": mdq.lastWeek()}, function(err, dataLogs) {    
-                dataLogs.forEach(function(dataLog) {
-                    console.log(dataLog);
-                    waterTemps.push({x: dataLog.date, y: dataLog.waterTemperature});
-                    airTemperatures.push({x: dataLog.date, y: dataLog.airTemperature});
-                    humidities.push({x: dataLog.date, y: dataLog.humidity});
-                    heatIndexes.push({x: dataLog.date, y: dataLog.heatIndex});
-                    lightIntensities.push({x: dataLog.date, y: dataLog.lightIntensity});
-                }); 
-                io.sockets.emit('waterTemperature',{"waterTemperature":waterTemperature,"chartData":waterTemps});
-                io.sockets.emit('airTemperature',{"airTemperature":airTemperature,"chartData":airTemperatures});
-                io.sockets.emit('humidity',{"humidity":humidity,"chartData":humidities});
-                io.sockets.emit('heatIndex',{"heatIndex":heatIndex,"chartData":heatIndexes});
-                io.sockets.emit('lightIntensity',{"lightIntensity":lightIntensity,"chartData":lightIntensities});
-              });
+            DataLog.aggregate(
+                [
+                {
+                    '$match': {
+                        'date': {'$gte': new Date((new Date().getTime() - (7 * 24 * 60 * 60 * 1000)))}
+                    },
+                },
+                {
+                    $group: {
+                    _id: {$dateToString: { format: "%Y-%m-%d %H:00", date: "$date", timezone: "+02"}},
+                    waterTemperatureUnrounded: {$avg: '$waterTemperature' },
+                    airTemperatureUnrounded: { $avg: '$airTemperature' },
+                    humidityUnrounded: { $avg: '$humidity' },
+                    heatIndexUnrounded: { $avg: '$heatIndex' },
+                    lightIntensityUnrounded: { $avg: '$lightIntensity' }
+                    }
+                },
+                {
+                    $addFields:{
+                    waterTemperature: { $round: ["$waterTemperatureUnrounded", 2] },
+                    airTemperature: { $round: ["$airTemperatureUnrounded", 2] },
+                    humidity: { $round: ["$humidityUnrounded", 2] },
+                    heatIndex: { $round: ["$heatIndexUnrounded", 2] },
+                    lightIntensity: { $round: ["$lightIntensityUnrounded", 2] }
+                    }
+                },
+                { $sort : { _id: 1 } }
+                ],
+            
+                function(err, dataLogs) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        dataLogs.forEach(function(dataLog) {
+                            // console.log(dataLog);
+                            waterTemps.push({x: dataLog._id, y: dataLog.waterTemperature});
+                            airTemperatures.push({x: dataLog._id, y: dataLog.airTemperature});
+                            humidities.push({x: dataLog._id, y: dataLog.humidity});
+                            heatIndexes.push({x: dataLog._id, y: dataLog.heatIndex});
+                            lightIntensities.push({x: dataLog._id, y: dataLog.lightIntensity});
+                        }); 
+                        io.sockets.emit('waterTemperature',{"waterTemperature":waterTemperature,"chartData":waterTemps});
+                        io.sockets.emit('airTemperature',{"airTemperature":airTemperature,"chartData":airTemperatures});
+                        io.sockets.emit('humidity',{"humidity":humidity,"chartData":humidities});
+                        io.sockets.emit('heatIndex',{"heatIndex":heatIndex,"chartData":heatIndexes});
+                        io.sockets.emit('lightIntensity',{"lightIntensity":lightIntensity,"chartData":lightIntensities});
+                    }
+                }
+              );
            
             res.send("item saved to database");
         })
@@ -98,21 +132,55 @@ io.sockets.on('connection', function(socket){
     var heatIndexes = [];
     var lightIntensities = [];
 
-    DataLog.find({"date": mdq.lastWeek()}, function(err, dataLogs) {    
-        dataLogs.forEach(function(dataLog) {
-            console.log(dataLog);
-            waterTemps.push({x: dataLog.date, y: dataLog.waterTemperature});
-            airTemperatures.push({x: dataLog.date, y: dataLog.airTemperature});
-            humidities.push({x: dataLog.date, y: dataLog.humidity});
-            heatIndexes.push({x: dataLog.date, y: dataLog.heatIndex});
-            lightIntensities.push({x: dataLog.date, y: dataLog.lightIntensity});
-        }); 
-        io.sockets.emit('waterTemperature',{"waterTemperature":waterTemperature,"chartData":waterTemps});
-        io.sockets.emit('airTemperature',{"airTemperature":airTemperature,"chartData":airTemperatures});
-        io.sockets.emit('humidity',{"humidity":humidity,"chartData":humidities});
-        io.sockets.emit('heatIndex',{"heatIndex":heatIndex,"chartData":heatIndexes});
-        io.sockets.emit('lightIntensity',{"lightIntensity":lightIntensity,"chartData":lightIntensities});
-      });
+    DataLog.aggregate(
+        [
+        {
+            '$match': {
+                'date': {'$gte': new Date((new Date().getTime() - (7 * 24 * 60 * 60 * 1000)))}
+            },
+        },
+        {
+            $group: {
+            _id: {$dateToString: { format: "%Y-%m-%d %H:00", date: "$date", timezone: "+02"}},
+            waterTemperatureUnrounded: {$avg: '$waterTemperature' },
+            airTemperatureUnrounded: { $avg: '$airTemperature' },
+            humidityUnrounded: { $avg: '$humidity' },
+            heatIndexUnrounded: { $avg: '$heatIndex' },
+            lightIntensityUnrounded: { $avg: '$lightIntensity' }
+            }
+        },
+        {
+            $addFields:{
+            waterTemperature: { $round: ["$waterTemperatureUnrounded", 2] },
+            airTemperature: { $round: ["$airTemperatureUnrounded", 2] },
+            humidity: { $round: ["$humidityUnrounded", 2] },
+            heatIndex: { $round: ["$heatIndexUnrounded", 2] },
+            lightIntensity: { $round: ["$lightIntensityUnrounded", 2] }
+            }
+        },
+        { $sort : { _id: 1 } }
+        ],
+    
+        function(err, dataLogs) {
+            if (err) {
+                console.log(err);
+            } else {
+                dataLogs.forEach(function(dataLog) {
+                    // console.log(dataLog);
+                    waterTemps.push({x: dataLog._id, y: dataLog.waterTemperature});
+                    airTemperatures.push({x: dataLog._id, y: dataLog.airTemperature});
+                    humidities.push({x: dataLog._id, y: dataLog.humidity});
+                    heatIndexes.push({x: dataLog._id, y: dataLog.heatIndex});
+                    lightIntensities.push({x: dataLog._id, y: dataLog.lightIntensity});
+                }); 
+                io.sockets.emit('waterTemperature',{"waterTemperature":waterTemperature,"chartData":waterTemps});
+                io.sockets.emit('airTemperature',{"airTemperature":airTemperature,"chartData":airTemperatures});
+                io.sockets.emit('humidity',{"humidity":humidity,"chartData":humidities});
+                io.sockets.emit('heatIndex',{"heatIndex":heatIndex,"chartData":heatIndexes});
+                io.sockets.emit('lightIntensity',{"lightIntensity":lightIntensity,"chartData":lightIntensities});
+            }
+        }
+    );
     
     socket.on('disconnect', function(){
         console.log('disconnected');
