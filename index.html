@@ -8,46 +8,57 @@
         href = "/mystyle.css" />
 </head>
 <body>
+    
     <main role="main" class="main-content" id="main-content">
-        <h1>Current Information</h1>
-        <hr>
-        <div class="titleCont">
-            <h1 class="main-title" id="waterTemperature">
-                0.0°C
-            </h1>
-        </div>
+        <br>
+        <div id="lastReadingDate"></div>
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Current Value</th>
+                    <th>Min Value</th>
+                    <th>Max Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Water Temperature</td>
+                    <td id="waterTemperatureCurrent" class="current-value">0.0°C</td>
+                    <td id="waterTemperatureMin">0.0°C</td>
+                    <td id="waterTemperatureMax">0.0°C</td>
+                </tr>
+                <tr>
+                    <td>Air Temperature</td>
+                    <td id="airTemperatureCurrent" class="current-value">0.0°C</td>
+                    <td id="airTemperatureMin">0.0°C</td>
+                    <td id="airTemperatureMax">0.0°C</td>
+                </tr>
+                <tr>
+                    <td>Heat Index</td>
+                    <td id="heatIndexCurrent" class="current-value">0.0°C</td>
+                    <td id="heatIndexMin">0.0°C</td>
+                    <td id="heatIndexMax">0.0°C</td>
+                </tr>
+                <tr>
+                    <td>Humidity</td>
+                    <td id="humidityCurrent" class="current-value">0.0%</td>
+                    <td id="humidityMin">0.0%</td>
+                    <td id="humidityMax">0.0%</td>
+                </tr>
+                <tr>
+                    <td>Light Intensity</td>
+                    <td id="lightIntensityCurrent" class="current-value">0.0</td>
+                    <td id="lightIntensityMin">0.0</td>
+                    <td id="lightIntensityMax">0.0</td>
+                </tr>
+            </tbody>
+        </table>
 
-        <div class="titleCont">
-            <h1 class="main-title" id="airTemperature">
-                0.0°C
-            </h1>
-        </div>
-
-        <div class="titleCont">
-            <h1 class="main-title" id="humidity">
-                0.0%
-            </h1>
-        </div>
-
-        <div class="titleCont">
-            <h1 class="main-title" id="heatIndex">
-                0.0°C
-            </h1>
-        </div>
-
-        <div class="titleCont">
-            <h1 class="main-title" id="lightIntensity">
-                0.0
-            </h1>
-        </div>
-        <hr>
-
-        <h1>Graphs for last 7 days</h1>
-        <div id="waterTemperatureChartDiv" style="width:80%; height:50%; margin:0 auto;"></div>
-        <div id="airTemperatureChartDiv" style="width:80%; height:50%; margin:0 auto;"></div>
-        <div id="humidityChartDiv" style="width:80%; height:50%; margin:0 auto;"></div>
-        <div id="heatIndexChartDiv" style="width:80%; height:50%; margin:0 auto;"></div>
-        <div id="lightIntensityChartDiv" style="width:80%; height:20%; margin:0 auto;"></div>
+        <h1>Historic Data</h1>
+        <div id="temperatureChartDiv" style="width:80%; height:400px; margin:0 auto;"></div>
+        <div id="humidityChartDiv" style="width:80%; height:400px; margin:0 auto;"></div>
+        <div id="lightIntensityChartDiv" style="width:80%; height:400px; margin:0 auto;"></div>
         
     </main>
     
