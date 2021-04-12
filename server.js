@@ -30,7 +30,7 @@ var lightIntensity = 0.0;
 var lastReadingDate = new Date((new Date().getTime()));
 
 var selectionPeriodDays = 7;
-var selectionUnits = ["RAW", "HOURLY", "DAILY", "WEEKLY", "MONTHLY"]
+var selectionUnits = ["RAW", "HOURLY", "DAILY", "WEEKLY", "MONTHLY"];
 var selectionUnit = "HOURLY";
 
 var jsonParser = bodyParser.json();
@@ -52,6 +52,20 @@ app.get('/current-temp', (req, res) => {
     res.send(waterTemperature);
 });
 
+app.post('/change-graph-parameters', jsonParser, (req, res) => {
+    selectionPeriodDays = req.body.selectionPeriodDays;
+    selectionUnit = req.body.selectionUnit;
+
+    updateCurrentData();
+
+    if(selectionUnit == "WEEKLY"){
+        updateGraphDataWeekly();
+    }else{
+        updateGraphData();
+    }
+    res.send("graph parameters changed");
+});
+
 app.post('/', jsonParser, (req, res) => {
     lastReadingDate = new Date((new Date().getTime()));
 
@@ -67,81 +81,7 @@ app.post('/', jsonParser, (req, res) => {
 
             res.send("item saved to database");
 
-            var waterTemperatureCurrent = waterTemperature;
-            var waterTemperatureMin = 0.0;
-            var waterTemperatureMax = 0.0;
-            var airTemperatureCurrent = airTemperature;
-            var airTemperatureMin = 0.0;
-            var airTemperatureMax = 0.0;
-            var humidityCurrent = humidity;
-            var humidityMin = 0.0;
-            var humidityMax = 0.0;
-            var heatIndexCurrent = heatIndex;
-            var heatIndexMin = 0.0;
-            var heatIndexMax = 0.0;
-            var lightIntensityCurrent = lightIntensity;
-            var lightIntensityMin = 0.0;
-            var lightIntensityMax = 0.0;
-
-            DataLog.aggregate([ 
-                {
-                    '$match': {
-                        'date': {'$gte': new Date((new Date().getTime() - (selectionPeriodDays * 24 * 60 * 60 * 1000)))}
-                    },
-                },{ "$group": { 
-                    "_id": null,
-                    "waterTemperatureMin": { "$min": "$waterTemperature" }, 
-                    "waterTemperatureMax": { "$max": "$waterTemperature" }, 
-                    "airTemperatureMin": { "$min": "$airTemperature" }, 
-                    "airTemperatureMax": { "$max": "$airTemperature" }, 
-                    "humidityMin": { "$min": "$humidity" }, 
-                    "humidityMax": { "$max": "$humidity" }, 
-                    "heatIndexMin": { "$min": "$heatIndex" }, 
-                    "heatIndexMax": { "$max": "$heatIndex" }, 
-                    "lightIntensityMin": { "$min": "$lightIntensity" }, 
-                    "lightIntensityMax": { "$max": "$lightIntensity" }, 
-                }}
-            ],
-            
-            function(err, dataLogs) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    dataLogs.forEach(function(dataLog) {
-                        // console.log(dataLog);
-                        waterTemperatureMin = dataLog.waterTemperatureMin;
-                        waterTemperatureMax = dataLog.waterTemperatureMax;
-                        airTemperatureMin = dataLog.airTemperatureMin;
-                        airTemperatureMax = dataLog.airTemperatureMax;
-                        humidityMin = dataLog.humidityMin;
-                        humidityMax = dataLog.humidityMax;
-                        heatIndexMin = dataLog.heatIndexMin;
-                        heatIndexMax = dataLog.heatIndexMax;
-                        lightIntensityMin = dataLog.lightIntensityMin;
-                        lightIntensityMax = dataLog.lightIntensityMax;
-
-                        io.sockets.emit('currentDataValues',{   
-                            "waterTemperatureCurrent":waterTemperatureCurrent,
-                            "waterTemperatureMin":waterTemperatureMin,
-                            "waterTemperatureMax":waterTemperatureMax,
-                            "airTemperatureCurrent":airTemperatureCurrent,
-                            "airTemperatureMin":airTemperatureMin,
-                            "airTemperatureMax":airTemperatureMax, 
-                            "humidityCurrent":humidityCurrent,
-                            "humidityMin":humidityMin, 
-                            "humidityMax":humidityMax, 
-                            "heatIndexCurrent":heatIndexCurrent, 
-                            "heatIndexMin":heatIndexMin, 
-                            "heatIndexMax":heatIndexMax, 
-                            "lightIntensityCurrent":lightIntensityCurrent,
-                            "lightIntensityMin":lightIntensityMin,
-                            "lightIntensityMax":lightIntensityMax,
-                            "lastReadingDate": lastReadingDate.toLocaleString("en-ZA")
-                        });
-
-                    });
-                }
-            })
+            updateCurrentData();
 
         })
         .catch(err => {
@@ -154,6 +94,20 @@ io.sockets.on('connection', function(socket){
     
     console.log('connected');
 
+    updateCurrentData();
+
+    if(selectionUnit == "WEEKLY"){
+        updateGraphDataWeekly();
+    }else{
+        updateGraphData();
+    }
+               
+    socket.on('disconnect', function(){
+        console.log('disconnected');
+    })
+});
+
+function updateCurrentData(){
     var waterTemperatureCurrent = waterTemperature;
     var waterTemperatureMin = 0.0;
     var waterTemperatureMax = 0.0;
@@ -206,10 +160,32 @@ io.sockets.on('connection', function(socket){
                 heatIndexMax = dataLog.heatIndexMax;
                 lightIntensityMin = dataLog.lightIntensityMin;
                 lightIntensityMax = dataLog.lightIntensityMax;
+
+                io.sockets.emit('currentDataValues',{   
+                    "waterTemperatureCurrent":waterTemperatureCurrent,
+                    "waterTemperatureMin":waterTemperatureMin,
+                    "waterTemperatureMax":waterTemperatureMax,
+                    "airTemperatureCurrent":airTemperatureCurrent,
+                    "airTemperatureMin":airTemperatureMin,
+                    "airTemperatureMax":airTemperatureMax, 
+                    "humidityCurrent":humidityCurrent,
+                    "humidityMin":humidityMin, 
+                    "humidityMax":humidityMax, 
+                    "heatIndexCurrent":heatIndexCurrent, 
+                    "heatIndexMin":heatIndexMin, 
+                    "heatIndexMax":heatIndexMax, 
+                    "lightIntensityCurrent":lightIntensityCurrent,
+                    "lightIntensityMin":lightIntensityMin,
+                    "lightIntensityMax":lightIntensityMax,
+                    "lastReadingDate": lastReadingDate.toLocaleString("en-ZA")
+                });
+
             });
         }
     })
+}
 
+function updateGraphData(){
     var waterTemps = [];
     var airTemperatures = [];
     var humidities = [];
@@ -225,7 +201,7 @@ io.sockets.on('connection', function(socket){
         },
         {
             $group: {
-            _id: {$dateToString: { format: "%Y-%m-%d %H:00", date: "$date", timezone: "+02"}},
+            _id: {$dateToString: { format: getSelectionUnitExpression(), date: "$date", timezone: "+02"}},
             waterTemperatureUnrounded: {$avg: '$waterTemperature' },
             airTemperatureUnrounded: { $avg: '$airTemperature' },
             humidityUnrounded: { $avg: '$humidity' },
@@ -257,34 +233,83 @@ io.sockets.on('connection', function(socket){
                     heatIndexes.push({x: dataLog._id, y: dataLog.heatIndex});
                     lightIntensities.push({x: dataLog._id, y: dataLog.lightIntensity});
                 });
-                io.sockets.emit('currentDataValues',{   "waterTemperatureCurrent":waterTemperatureCurrent,
-                                                        "waterTemperatureMin":waterTemperatureMin,
-                                                        "waterTemperatureMax":waterTemperatureMax,
-                                                        "airTemperatureCurrent":airTemperatureCurrent,
-                                                        "airTemperatureMin":airTemperatureMin,
-                                                        "airTemperatureMax":airTemperatureMax, 
-                                                        "humidityCurrent":humidityCurrent,
-                                                        "humidityMin":humidityMin, 
-                                                        "humidityMax":humidityMax, 
-                                                        "heatIndexCurrent":heatIndexCurrent, 
-                                                        "heatIndexMin":heatIndexMin, 
-                                                        "heatIndexMax":heatIndexMax, 
-                                                        "lightIntensityCurrent":lightIntensityCurrent,
-                                                        "lightIntensityMin":lightIntensityMin,
-                                                        "lightIntensityMax":lightIntensityMax,
-                                                        "lastReadingDate": lastReadingDate.toLocaleString("en-ZA")
-                                                    });
+                
                 io.sockets.emit('temperature',{"airTemperature":airTemperature,"airTemperaturesData":airTemperatures, "heatIndexData":heatIndexes, "waterTemperaturesData": waterTemps});
                 io.sockets.emit('humidity',{"chartData":humidities});
                 io.sockets.emit('lightIntensity',{"chartData":lightIntensities});
             }
         }
-    );
+        );
+}
+
+function updateGraphDataWeekly(){
+    var waterTemps = [];
+    var airTemperatures = [];
+    var humidities = [];
+    var heatIndexes = [];
+    var lightIntensities = [];
+
+    DataLog.aggregate(
+        [
+        {
+            '$match': {
+                'date': {'$gte': new Date((new Date().getTime() - (selectionPeriodDays * 24 * 60 * 60 * 1000)))}
+            },
+        },
+        {
+            $group: {
+            _id: {$week: '$date'},
+            waterTemperatureUnrounded: {$avg: '$waterTemperature' },
+            airTemperatureUnrounded: { $avg: '$airTemperature' },
+            humidityUnrounded: { $avg: '$humidity' },
+            heatIndexUnrounded: { $avg: '$heatIndex' },
+            lightIntensityUnrounded: { $avg: '$lightIntensity' }
+            }
+        },
+        {
+            $addFields:{
+            waterTemperature: { $round: ["$waterTemperatureUnrounded", 2] },
+            airTemperature: { $round: ["$airTemperatureUnrounded", 2] },
+            humidity: { $round: ["$humidityUnrounded", 2] },
+            heatIndex: { $round: ["$heatIndexUnrounded", 2] },
+            lightIntensity: { $round: ["$lightIntensityUnrounded", 2] }
+            }
+        },
+        { $sort : { _id: 1 } }
+        ],
     
-    socket.on('disconnect', function(){
-        console.log('disconnected');
-    })
-});
+        function(err, dataLogs) {
+            if (err) {
+                console.log(err);
+            } else {
+                dataLogs.forEach(function(dataLog) {
+                    // console.log(dataLog);
+                    waterTemps.push({x: dataLog._id, y: dataLog.waterTemperature});
+                    airTemperatures.push({x: dataLog._id, y: dataLog.airTemperature});
+                    humidities.push({x: dataLog._id, y: dataLog.humidity});
+                    heatIndexes.push({x: dataLog._id, y: dataLog.heatIndex});
+                    lightIntensities.push({x: dataLog._id, y: dataLog.lightIntensity});
+                });
+                
+                io.sockets.emit('temperature',{"airTemperature":airTemperature,"airTemperaturesData":airTemperatures, "heatIndexData":heatIndexes, "waterTemperaturesData": waterTemps});
+                io.sockets.emit('humidity',{"chartData":humidities});
+                io.sockets.emit('lightIntensity',{"chartData":lightIntensities});
+            }
+        }
+        );
+}
+
+function getSelectionUnitExpression(){
+    if(selectionUnit == "RAW"){
+        return "%Y-%m-%d %H:%M:00";
+    } else if (selectionUnit == "HOURLY"){
+        return "%Y-%m-%d %H:00";
+    } else if (selectionUnit == "DAILY"){
+        return "%Y-%m-%d";
+    } else if (selectionUnit == "MONTHLY"){
+        return "%Y-%m";
+    }
+}
 
 http.listen(9001, () => {
     console.log('listening on *:9001');

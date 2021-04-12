@@ -82,3 +82,20 @@ socket.on("lightIntensity", function(data){
 	
 	renderLightIntensityChart([{name: 'Light Intensities', points: data.chartData}]);
 })
+
+function loadFromServer(){
+	var selectionPeriodDays = document.getElementById("selectionPeriodDays").value;
+	var selectionUnit = document.getElementById("selectionUnit").value;
+	
+	let loadData = {selectionPeriodDays: selectionPeriodDays, selectionUnit: selectionUnit};
+	  
+	fetch('/change-graph-parameters', {
+		method: 'POST', 
+		credentials: 'same-origin',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		// Body data type must match "Content-Type" header        
+		body: JSON.stringify(loadData), 
+	});
+}

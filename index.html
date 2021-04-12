@@ -55,7 +55,22 @@
             </tbody>
         </table>
 
-        <h1>Historic Data</h1>
+        <div>
+            <h1>Historic Data</h1>
+            <label for="cars">Period (days):</label>
+            <INPUT id="selectionPeriodDays" TYPE="NUMBER" MIN="1" MAX="365" STEP="1" VALUE="7" SIZE="10">
+            
+            <label for="selectionPeriods">Average per:</label>
+            <select name="selectionUnit" id="selectionUnit">
+                <option value="RAW">None</option>
+                <option value="HOURLY">Hour</option>
+                <option value="DAILY">Day</option>
+                <option value="WEEKLY">Week</option>
+                <option value="MONTHLY">Month</option>
+            </select>
+
+            <button onclick="loadFromServer()">Load</button>
+        </div>
         <div id="temperatureChartDiv" style="width:80%; height:400px; margin:0 auto;"></div>
         <div id="humidityChartDiv" style="width:80%; height:400px; margin:0 auto;"></div>
         <div id="lightIntensityChartDiv" style="width:80%; height:400px; margin:0 auto;"></div>
